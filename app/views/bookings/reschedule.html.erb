@@ -1,0 +1,257 @@
+<div class="container">
+
+  <div class="page-header">
+    <span class="eyebrow">RESCHEDULE BOOKING</span>
+
+    <h1>Reschedule Your Booking</h1>
+
+    <p>
+      Select another departure time for the same route and operator.
+      Your current seats will be transferred automatically if available.
+    </p>
+  </div>
+
+
+  <!-- CURRENT BOOKING -->
+
+  <div class="booking-card">
+
+    <div class="booking-card-header">
+
+      <div>
+        <span class="booking-label">
+          CURRENT BOOKING #<%= @booking.id %>
+        </span>
+
+        <h2>
+          <%= @booking.trip.from_city %>
+          <span class="booking-arrow">→</span>
+          <%= @booking.trip.to_city %>
+        </h2>
+      </div>
+
+      <span class="status-badge status-confirmed">
+        ✓ Confirmed
+      </span>
+
+    </div>
+
+
+    <div class="booking-trip-details">
+
+      <div class="booking-detail">
+        <span>Current Departure</span>
+
+        <strong>
+          <%= @booking.trip.departure_at.strftime(
+            "%d %b %Y, %I:%M %p"
+          ) %>
+        </strong>
+      </div>
+
+
+      <div class="booking-detail">
+        <span>Confirmed Seats</span>
+
+        <strong>
+          <%= @current_seats.map { |ts|
+                ts.seat.seat_number
+              }.join(", ") %>
+        </strong>
+      </div>
+
+
+      <div class="booking-detail">
+        <span>Operator</span>
+
+        <strong>
+          <%= @booking.trip.operator.name %>
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- RESCHEDULE OPTIONS -->
+
+  <div class="reschedule-section">
+
+    <h2>
+      Select New Departure
+    </h2>
+
+    <p>
+      The same seats will be transferred automatically.
+      If any of your seats are unavailable, the reschedule will not be completed.
+    </p>
+
+
+    <!-- SEATS -->
+
+    <div class="selected-seat-summary">
+
+      <span class="booking-label">
+        SEATS TO BE TRANSFERRED
+      </span>
+
+      <div class="booking-seat-list">
+
+        <% @current_seats.each do |trip_seat| %>
+
+          <span class="booking-seat">
+            <%= trip_seat.seat.seat_number %>
+          </span>
+
+        <% end %>
+
+      </div>
+
+    </div>
+
+
+    <!-- TRIPS -->
+
+    <% if @trips.any? %>
+
+      <div class="trip-list">
+
+        <% @trips.each do |trip| %>
+
+          <div class="trip-option">
+
+            <div class="trip-option-content">
+
+              <!-- ROUTE -->
+
+              <div class="trip-route">
+
+                <strong>
+                  <%= trip.from_city %>
+                  →
+                  <%= trip.to_city %>
+                </strong>
+
+              </div>
+
+
+              <!-- DETAILS -->
+
+              <div class="trip-info">
+
+                <div>
+                  <span>Departure</span>
+
+                  <strong>
+                    <%= trip.departure_at.strftime(
+                      "%d %b %Y, %I:%M %p"
+                    ) %>
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>Arrival</span>
+
+                  <strong>
+                    <%= trip.arrival_at.strftime(
+                      "%d %b %Y, %I:%M %p"
+                    ) %>
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>Operator</span>
+
+                  <strong>
+                    <%= trip.operator.name %>
+                  </strong>
+                </div>
+
+
+                <div>
+                  <span>New Fare</span>
+
+                  <strong>
+                    ₹<%= number_with_precision(
+                      trip.price,
+                      precision: 2
+                    ) %>
+                    / seat
+                  </strong>
+                </div>
+
+              </div>
+
+
+              <!-- ACTION -->
+
+              <div class="trip-action">
+
+                <%= form_with(
+                  url: update_reschedule_booking_path(@booking),
+                  method: :patch,
+                  local: true
+                ) do %>
+
+                  <%= hidden_field_tag(
+                    :trip_id,
+                    trip.id
+                  ) %>
+
+                  <%= submit_tag(
+                    "Reschedule to This Trip",
+                    class: "btn btn-primary",
+                    data: {
+                      turbo_confirm:
+                        "Reschedule this booking to #{trip.departure_at.strftime('%d %b %Y, %I:%M %p')}?"
+                    }
+                  ) %>
+
+                <% end %>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        <% end %>
+
+      </div>
+
+    <% else %>
+
+      <div class="empty-state">
+
+        <h3>
+          No other trips available
+        </h3>
+
+        <p>
+          There are currently no future trips available
+          for this route and operator.
+        </p>
+
+      </div>
+
+    <% end %>
+
+
+    <!-- BACK -->
+
+    <div class="booking-actions">
+
+      <%= link_to(
+        "← Back to Booking",
+        booking_path(@booking),
+        class: "btn btn-secondary"
+      ) %>
+
+    </div>
+
+  </div>
+
+</div>

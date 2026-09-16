@@ -1,0 +1,184 @@
+<div class="container"> <div class="page-header"> <span class="eyebrow">MY ACCOUNT</span> <h1>My Bookings</h1> <p>View and manage all your bus bookings.</p> </div>
+  <div class="trip-header">
+    <%= link_to(
+      "← Back to Trips",
+      trips_path,
+      class: "back-link"
+    ) %>
+
+  </div>
+<% if @bookings.any? %>
+
+<div class="booking-list">
+
+  <% @bookings.each do |booking| %>
+
+    <div class="booking-card">
+
+      <!-- Booking Header -->
+      <div class="booking-card-header">
+
+        <div>
+          <span class="booking-label">
+            BUS BOOKING #<%= booking.id %>
+          </span>
+
+          <h2>
+            <%= booking.trip.from_city %>
+            <span class="booking-arrow">→</span>
+            <%= booking.trip.to_city %>
+          </h2>
+        </div>
+
+        <% if booking.confirmed? %>
+
+          <span class="status-badge status-confirmed">
+            ✓ Confirmed
+          </span>
+
+        <% elsif booking.cancelled? %>
+
+          <span class="status-badge status-cancelled">
+            Cancelled
+          </span>
+
+        <% end %>
+
+      </div>
+
+
+      <!-- Trip Details -->
+      <div class="booking-trip-details">
+
+        <div class="booking-detail">
+
+          <span>Operator</span>
+
+          <strong>
+            <%= booking.trip.operator.name %>
+          </strong>
+
+        </div>
+
+
+        <div class="booking-detail">
+
+          <span>Departure</span>
+
+          <strong>
+            <%= booking.trip.departure_at.strftime(
+              "%d %b %Y, %I:%M %p"
+            ) %>
+          </strong>
+
+        </div>
+
+
+        <div class="booking-detail">
+
+          <span>Arrival</span>
+
+          <strong>
+            <%= booking.trip.arrival_at.strftime(
+              "%d %b %Y, %I:%M %p"
+            ) %>
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- Seats and Fare -->
+      <div class="booking-bottom">
+
+        <div class="booking-seats">
+
+          <span class="booking-label">
+            SEATS
+          </span>
+
+          <div class="booking-seat-list">
+
+            <% if booking.hold.present? %>
+
+              <% booking.seats.each do |seat| %>
+
+                <span class="booking-seat">
+                  <%= seat.seat_number %>
+                </span>
+
+              <% end %>
+
+            <% else %>
+
+              <span class="booking-seat-unavailable">
+                Seat information unavailable
+              </span>
+
+            <% end %>
+
+          </div>
+
+        </div>
+
+
+        <div class="booking-total">
+
+          <span class="booking-label">
+            TOTAL AMOUNT
+          </span>
+
+          <strong>
+            ₹<%= booking.total_amount %>
+          </strong>
+
+        </div>
+
+
+        <div class="booking-action">
+
+          <%= link_to(
+            "View Booking →",
+            booking_path(booking),
+            class: "btn btn-primary"
+          ) %>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  <% end %>
+
+</div>
+
+
+<% else %>
+
+<div class="empty-state">
+
+  <div class="empty-icon">
+    🚌
+  </div>
+
+  <h3>No bookings yet</h3>
+
+  <p>
+    You don't have any bookings yet.
+    Search for a bus and book your seats to see them here.
+  </p>
+
+  <%= link_to(
+    "Search Buses",
+    trips_path,
+    class: "btn btn-primary"
+  ) %>
+
+</div>
+
+
+<% end %>
+
+</div>
