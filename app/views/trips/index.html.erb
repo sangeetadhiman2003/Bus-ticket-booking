@@ -1,0 +1,367 @@
+<div class="container bus-booking-page">
+
+  <!-- Search Header -->
+  <div class="page-header">
+
+    <div>
+      <span class="eyebrow">BUS TICKETS</span>
+      <h1>Find your perfect bus</h1>
+      <p>Search buses, compare prices and book your seat.</p>
+    </div>
+
+    <% if user_signed_in? %>
+      <div class="header-actions">
+
+        <%= link_to bookings_path, class: "my-bookings-link" do %>
+          <span>🎟️</span>
+          My Bookings
+        <% end %>
+
+      </div>
+    <% end %>
+
+  </div>
+
+  <!-- Search Card -->
+  <div class="search-card">
+
+    <%= form_with(
+      url: trips_path,
+      method: :get,
+      local: true
+    ) do |form| %>
+
+      <div class="search-route-row">
+
+        <div class="search-location">
+          <span class="input-icon">📍</span>
+
+          <div class="form-group">
+            <%= form.label :from_city, "FROM" %>
+
+            <%= form.text_field(
+              :from_city,
+              value: params[:from_city],
+              placeholder: "Departure city"
+            ) %>
+          </div>
+        </div>
+
+        <div class="route-divider">
+          ⇄
+        </div>
+
+        <div class="search-location">
+          <span class="input-icon">📍</span>
+
+          <div class="form-group">
+            <%= form.label :to_city, "TO" %>
+
+            <%= form.text_field(
+              :to_city,
+              value: params[:to_city],
+              placeholder: "Destination city"
+            ) %>
+          </div>
+        </div>
+
+        <div class="search-location">
+          <span class="input-icon">📅</span>
+
+          <div class="form-group">
+            <%= form.label :date, "TRAVEL DATE" %>
+
+            <%= form.date_field(
+              :date,
+              value: params[:date]
+            ) %>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Filters -->
+
+      <div class="filter-row">
+
+        <div class="form-group">
+          <%= form.label :min_price, "Minimum Price" %>
+
+          <%= form.number_field(
+            :min_price,
+            value: params[:min_price],
+            min: 0,
+            placeholder: "₹ Min"
+          ) %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :max_price, "Maximum Price" %>
+
+          <%= form.number_field(
+            :max_price,
+            value: params[:max_price],
+            min: 0,
+            placeholder: "₹ Max"
+          ) %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :min_rating, "Minimum Rating" %>
+
+          <%= form.number_field(
+            :min_rating,
+            value: params[:min_rating],
+            min: 0,
+            max: 5,
+            step: 0.1,
+            placeholder: "e.g. 4.0"
+          ) %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :bus_type, "Bus Type" %>
+
+          <%= form.select(
+            :bus_type,
+            options_for_select(
+              [
+                ["AC", "ac"],
+                ["Non AC", "non_ac"]
+              ],
+              params[:bus_type]
+            ),
+            { include_blank: "All Bus Types" }
+          ) %>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :amenity, "Amenity" %>
+
+          <%= form.select(
+            :amenity,
+            options_for_select(
+              [
+                ["Wi-Fi", "wifi"],
+                ["Charging", "charging"],
+                ["Water Bottle", "water_bottle"]
+              ],
+              params[:amenity]
+            ),
+            { include_blank: "All Amenities" }
+          ) %>
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+
+        <%= form.submit(
+          "🔍 Search Buses",
+          class: "btn btn-search"
+        ) %>
+
+        <%= link_to(
+          "Clear Filters",
+          trips_path,
+          class: "clear-link"
+        ) %>
+
+      </div>
+
+    <% end %>
+
+  </div>
+
+
+  <!-- Results -->
+
+  <div class="results">
+
+    <div class="results-header">
+
+      <div>
+        <span class="eyebrow">AVAILABLE BUSES</span>
+
+        <h2>
+          <%= params[:from_city].presence || "All cities" %>
+
+          <% if params[:from_city].present? || params[:to_city].present? %>
+            →
+          <% end %>
+
+          <%= params[:to_city].presence || "" %>
+        </h2>
+      </div>
+
+      <div class="trip-count">
+        <strong><%= @trips.size %></strong>
+        buses found
+      </div>
+
+    </div>
+
+
+    <% if @trips.any? %>
+
+      <div class="trip-list">
+
+        <% @trips.each do |trip| %>
+
+          <div class="trip-card">
+
+            <!-- Operator -->
+
+            <div class="trip-operator">
+
+              <div class="operator-logo">
+                🚌
+              </div>
+
+              <div>
+                <h3>
+                  <%= trip.operator.name %>
+                </h3>
+
+                <div class="operator-rating">
+                  ⭐ <%= trip.operator.rating %>
+                </div>
+              </div>
+
+            </div>
+
+
+            <!-- Route -->
+
+            <div class="trip-route">
+
+              <div class="route-point">
+
+                <span class="time">
+                  <%= trip.departure_at.strftime("%I:%M %p") %>
+                </span>
+
+                <strong>
+                  <%= trip.from_city %>
+                </strong>
+
+                <small>
+                  <%= trip.departure_at.strftime("%d %b %Y") %>
+                </small>
+
+              </div>
+
+
+              <div class="route-line">
+
+                <span class="route-duration">
+                  Bus Journey
+                </span>
+
+                <div class="line">
+                  <span class="line-dot"></span>
+                  <span class="line-arrow">→</span>
+                  <span class="line-dot"></span>
+                </div>
+
+              </div>
+
+
+              <div class="route-point destination">
+
+                <span class="time">
+                  <%= trip.arrival_at.strftime("%I:%M %p") %>
+                </span>
+
+                <strong>
+                  <%= trip.to_city %>
+                </strong>
+
+                <small>
+                  <%= trip.arrival_at.strftime("%d %b %Y") %>
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <!-- Trip Details -->
+
+            <div class="trip-details">
+
+              <span class="detail-badge">
+                🚌 <%= trip.bus.bus_type %>
+              </span>
+
+              <span class="detail-badge">
+                ⭐ <%= trip.operator.rating %>
+              </span>
+
+              <span class="detail-badge">
+                💺 Seats available
+              </span>
+
+            </div>
+
+
+            <!-- Price -->
+
+            <div class="trip-price-section">
+
+              <div>
+                <span class="price-label">
+                  Starting from
+                </span>
+
+                <div class="trip-price">
+                  ₹<%= trip.price %>
+                </div>
+
+                <span class="price-label">
+                  per seat
+                </span>
+              </div>
+
+              <%= link_to(
+                "View Seats →",
+                trip_path(trip),
+                class: "btn btn-primary"
+              ) %>
+
+            </div>
+
+          </div>
+
+        <% end %>
+
+      </div>
+
+    <% else %>
+
+      <div class="empty-state">
+
+        <div class="empty-icon">
+          🚌
+        </div>
+
+        <h3>No buses found</h3>
+
+        <p>
+          We couldn't find buses matching your search.
+          Try changing your filters or travel date.
+        </p>
+
+        <%= link_to(
+          "View All Buses",
+          trips_path,
+          class: "btn btn-primary"
+        ) %>
+
+      </div>
+
+    <% end %>
+
+  </div>
+
+</div>

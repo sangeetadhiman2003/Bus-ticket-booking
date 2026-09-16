@@ -1,0 +1,249 @@
+<div class="container bus-booking-page">
+
+  <!-- Header -->
+
+  <div class="trip-header">
+
+    <div>
+
+      <span class="eyebrow">BUS DETAILS</span>
+
+      <h1>
+        <%= @trip.from_city %>
+        <span class="route-arrow">→</span>
+        <%= @trip.to_city %>
+      </h1>
+
+      <p>
+        Select your preferred seats and continue with your booking.
+      </p>
+
+    </div>
+
+    <%= link_to(
+      "← Back to Trips",
+      trips_path,
+      class: "back-link"
+    ) %>
+
+  </div>
+
+
+  <!-- Trip Information -->
+
+  <div class="trip-details-card">
+
+    <div class="detail-item">
+
+      <span>Operator</span>
+
+      <strong>
+        🚌 <%= @trip.operator.name %>
+      </strong>
+
+    </div>
+
+
+    <div class="detail-item">
+
+      <span>Rating</span>
+
+      <strong class="rating">
+        ⭐ <%= @trip.operator.rating %>
+      </strong>
+
+    </div>
+
+
+    <div class="detail-item">
+
+      <span>Bus Type</span>
+
+      <strong>
+        <%= @trip.bus.bus_type %>
+      </strong>
+
+    </div>
+
+
+    <div class="detail-item">
+
+      <span>Departure</span>
+
+      <strong>
+        <%= @trip.departure_at.strftime(
+          "%d %b %Y, %I:%M %p"
+        ) %>
+      </strong>
+
+    </div>
+
+
+    <div class="detail-item">
+
+      <span>Arrival</span>
+
+      <strong>
+        <%= @trip.arrival_at.strftime(
+          "%d %b %Y, %I:%M %p"
+        ) %>
+      </strong>
+
+    </div>
+
+
+    <div class="detail-item">
+
+      <span>Price / Seat</span>
+
+      <strong class="price">
+        ₹<%= @trip.price %>
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <% if user_signed_in? %>
+
+    <div class="seat-selection-card">
+
+      <div class="seat-card-header">
+
+        <div>
+          <span class="eyebrow">SEAT SELECTION</span>
+
+          <h2>Select Your Seats</h2>
+
+          <p>
+            Choose available seats for your journey.
+          </p>
+        </div>
+
+      </div>
+
+
+      <!-- Seat Legend -->
+
+      <div class="seat-legend">
+
+        <div>
+          <span class="legend-box available"></span>
+          Available
+        </div>
+
+        <div>
+          <span class="legend-box selected"></span>
+          Selected
+        </div>
+
+        <div>
+          <span class="legend-box held"></span>
+          Held
+        </div>
+
+        <div>
+          <span class="legend-box booked"></span>
+          Booked
+        </div>
+
+      </div>
+
+
+      <%= form_with(
+        url: trip_holds_path(@trip),
+        method: :post,
+        local: true
+      ) do |form| %>
+
+
+        <div class="bus-layout">
+
+          <div class="driver-area">
+            🚗 Driver
+          </div>
+
+
+          <div class="seat-grid">
+
+            <% @trip.trip_seats.includes(:seat).each do |trip_seat| %>
+
+              <% seat = trip_seat.seat %>
+
+              <% booked = trip_seat.booked? %>
+
+              <% held = trip_seat.held? %>
+
+
+              <label class="
+                seat-item
+                <%= 'seat-booked' if booked %>
+                <%= 'seat-held' if held %>
+              ">
+
+                <%= check_box_tag(
+                  "seat_ids[]",
+                  seat.id,
+                  false,
+                  id: "seat_#{seat.id}",
+                  disabled: booked || held
+                ) %>
+
+                <span class="seat-number">
+                  <%= seat.seat_number %>
+                </span>
+
+              </label>
+
+            <% end %>
+
+          </div>
+
+        </div>
+
+
+        <div class="seat-actions">
+
+          <div class="seat-help">
+            💡 Select available seats to continue.
+          </div>
+
+          <%= form.submit(
+            "Hold Selected Seats",
+            class: "btn btn-primary"
+          ) %>
+
+        </div>
+
+
+      <% end %>
+
+    </div>
+
+
+  <% else %>
+
+    <div class="login-required">
+
+      <div class="login-icon">
+        🔐
+      </div>
+
+      <h2>Login Required</h2>
+
+      <p>
+        Please login before selecting seats.
+      </p>
+
+      <%= link_to(
+        "Login to Continue",
+        new_user_session_path,
+        class: "btn btn-primary"
+      ) %>
+
+    </div>
+
+  <% end %>
+
+</div>
