@@ -64,3 +64,6 @@ group :test do
 end
 gem "dotenv-rails"
 gem "devise"
+group :development, :test do
+  gem "rspec-rails"
+end
