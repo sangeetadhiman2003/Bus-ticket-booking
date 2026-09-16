@@ -1,0 +1,304 @@
+<div class="container"> <!-- Header --> <div class="trip-header">
+<div>
+  <span class="page-label">BUS BOOKING</span>
+
+  <h1>
+    <%= @hold.trip.from_city %>
+    →
+    <%= @hold.trip.to_city %>
+  </h1>
+</div>
+
+<%= link_to(
+  "← Back to Trip",
+  trip_path(@hold.trip),
+  class: "back-link"
+) %>
+
+</div> <!-- Booking Status --> <div class="booking-status-card">
+<div>
+  <span class="detail-label">Reservation Status</span>
+
+  <% if @hold.confirmed? %>
+
+    <h2 class="status-confirmed">
+      ✓ Booking Confirmed
+    </h2>
+
+  <% elsif @hold.active? && !@hold.expired? %>
+
+    <h2 class="status-held">
+      ● Seats Held
+    </h2>
+
+  <% else %>
+
+    <h2 class="status-expired">
+      ✕ Hold Expired
+    </h2>
+
+  <% end %>
+</div>
+
+<div class="hold-id">
+  <span>Hold ID</span>
+  <strong>#<%= @hold.id %></strong>
+</div>
+
+</div> <!-- Trip Details --> <div class="trip-details-card">
+<div class="detail-item">
+  <span>Operator</span>
+
+  <strong>
+    <%= @hold.trip.operator.name %>
+  </strong>
+</div>
+
+
+<div class="detail-item">
+  <span>Bus Type</span>
+
+  <strong>
+    <%= @hold.trip.bus.bus_type %>
+  </strong>
+</div>
+
+
+<div class="detail-item">
+  <span>Departure</span>
+
+  <strong>
+    <%= @hold.trip.departure_at.strftime(
+      "%d %b %Y, %I:%M %p"
+    ) %>
+  </strong>
+</div>
+
+
+<div class="detail-item">
+  <span>Arrival</span>
+
+  <strong>
+    <%= @hold.trip.arrival_at.strftime(
+      "%d %b %Y, %I:%M %p"
+    ) %>
+  </strong>
+</div>
+
+
+<div class="detail-item">
+  <span>Price / Seat</span>
+
+  <strong>
+    ₹<%= @hold.trip.price %>
+  </strong>
+</div>
+
+</div> <!-- Selected Seats --> <div class="seat-selection-card">
+<div class="seat-heading">
+
+  <div>
+    <span class="detail-label">Your Selection</span>
+
+    <h2>
+      Selected Seats
+    </h2>
+  </div>
+
+  <span class="seat-total">
+    <%= @hold.trip_seats.count %>
+    <%= "Seat".pluralize(@hold.trip_seats.count) %>
+  </span>
+
+</div>
+
+
+<div class="selected-seat-grid">
+
+  <% @hold.trip_seats.each do |trip_seat| %>
+
+    <div class="selected-seat-card">
+
+      <div class="selected-seat-checkbox">
+        ✓
+      </div>
+
+      <div>
+        <span>Seat</span>
+
+        <strong>
+          <%= trip_seat.seat.seat_number %>
+        </strong>
+      </div>
+
+    </div>
+
+  <% end %>
+
+</div>
+
+</div> <!-- Fare --> <div class="fare-card">
+<h2>Fare Summary</h2>
+
+
+<div class="fare-row">
+
+  <span>
+    Price per seat
+  </span>
+
+  <strong>
+    ₹<%= @hold.trip.price %>
+  </strong>
+
+</div>
+
+
+<div class="fare-row">
+
+  <span>
+    Seats × <%= @hold.trip_seats.count %>
+  </span>
+
+  <strong>
+    ₹<%= @hold.trip.price * @hold.trip_seats.count %>
+  </strong>
+
+</div>
+
+
+<div class="fare-divider"></div>
+
+
+<div class="fare-total">
+
+  <span>
+    Total Amount
+  </span>
+
+  <strong>
+    ₹<%= @hold.trip.price * @hold.trip_seats.count %>
+  </strong>
+
+</div>
+
+</div> <!-- Active Hold -->
+
+<% if @hold.active? && !@hold.expired? %>
+
+<div class="hold-warning">
+
+  <div class="warning-icon">
+    ⏱
+  </div>
+
+  <div>
+
+    <strong>
+      Seats temporarily reserved
+    </strong>
+
+    <p>
+      Your selected seats are held for 5 minutes.
+      Confirm your booking before the hold expires.
+    </p>
+
+    <span>
+      Expires at:
+      <strong>
+        <%= @hold.expires_at.strftime(
+          "%d %b %Y, %I:%M:%S %p"
+        ) %>
+      </strong>
+    </span>
+
+  </div>
+
+</div>
+
+
+<%= form_with(
+  url: bookings_path,
+  method: :post,
+  local: true,
+  class: "booking-form"
+) do |form| %>
+
+  <%= hidden_field_tag(
+    :hold_id,
+    @hold.id
+  ) %>
+
+  <%= hidden_field_tag(
+    :idempotency_key,
+    @hold.id
+  ) %>
+
+  <%= form.submit(
+    "Confirm Booking →",
+    class: "btn btn-confirm"
+  ) %>
+
+<% end %>
+
+<!-- Confirmed -->
+
+<% elsif @hold.confirmed? %>
+
+<div class="success-message">
+
+  <div class="success-icon">
+    ✓
+  </div>
+
+  <div>
+    <strong>
+      Booking Confirmed
+    </strong>
+
+    <p>
+      Your seats have been successfully booked.
+    </p>
+  </div>
+
+</div>
+
+
+<%= link_to(
+  "Back to Trip",
+  trip_path(@hold.trip),
+  class: "btn btn-secondary"
+) %>
+
+<!-- Expired -->
+
+<% else %>
+
+<div class="error-message">
+
+  <div class="error-icon">
+    !
+  </div>
+
+  <div>
+    <strong>
+      Hold Expired
+    </strong>
+
+    <p>
+      The 5-minute reservation has expired.
+      Please select your seats again.
+    </p>
+  </div>
+
+</div>
+
+
+<%= link_to(
+  "Select Seats Again",
+  trip_path(@hold.trip),
+  class: "btn btn-primary"
+) %>
+
+
+<% end %>
