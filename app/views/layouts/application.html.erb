@@ -11,6 +11,31 @@
   </head>
 
   <body>
+
+    <% if user_signed_in? %>
+      <div class="logout-container">
+        <%= button_to "Logout",
+                      destroy_user_session_path,
+                      method: :delete,
+                      class: "logout-button" %>
+      </div>
+    <% end %>
+
+    <% if notice.present? %>
+      <div class="flash flash-success">
+        <%= notice %>
+      </div>
+    <% end %>
+
+    <% if alert.present? %>
+      <div class="flash flash-error">
+        <%= alert %>
+      </div>
+    <% end %>
+
     <%= yield %>
+
   </body>
+
+
 </html>
