@@ -15,7 +15,7 @@ The application includes:
 
 ## Clone and Run
 
-git clone [<repository-url>](https://github.com/sangeetadhiman2003/Bus-ticket-booking)
+git clone https://github.com/sangeetadhiman2003/Bus-ticket-booking
 cd ticket_booking
 
 bundle install
