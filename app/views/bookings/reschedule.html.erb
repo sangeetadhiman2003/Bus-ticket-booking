@@ -6,8 +6,8 @@
     <h1>Reschedule Your Booking</h1>
 
     <p>
-      Select another departure time for the same route and operator.
-      Your current seats will be transferred automatically if available.
+      Select a new departure time for the same route and operator.
+      Your existing seats will be transferred automatically.
     </p>
   </div>
 
@@ -54,8 +54,8 @@
         <span>Confirmed Seats</span>
 
         <strong>
-          <%= @current_seats.map { |ts|
-                ts.seat.seat_number
+          <%= @current_seats.map { |trip_seat|
+                trip_seat.seat.seat_number
               }.join(", ") %>
         </strong>
       </div>
@@ -74,17 +74,15 @@
   </div>
 
 
-  <!-- RESCHEDULE OPTIONS -->
+  <!-- NEW TRIP -->
 
   <div class="reschedule-section">
 
-    <h2>
-      Select New Departure
-    </h2>
+    <h2>Select New Departure</h2>
 
     <p>
-      The same seats will be transferred automatically.
-      If any of your seats are unavailable, the reschedule will not be completed.
+      Your current seats will be transferred to the selected trip.
+      If any seat is unavailable, the reschedule will not be completed.
     </p>
 
 
@@ -123,8 +121,6 @@
 
             <div class="trip-option-content">
 
-              <!-- ROUTE -->
-
               <div class="trip-route">
 
                 <strong>
@@ -135,8 +131,6 @@
 
               </div>
 
-
-              <!-- DETAILS -->
 
               <div class="trip-info">
 
@@ -186,7 +180,7 @@
               </div>
 
 
-              <!-- ACTION -->
+              <!-- RESCHEDULE -->
 
               <div class="trip-action">
 
@@ -205,8 +199,7 @@
                     "Reschedule to This Trip",
                     class: "btn btn-primary",
                     data: {
-                      turbo_confirm:
-                        "Reschedule this booking to #{trip.departure_at.strftime('%d %b %Y, %I:%M %p')}?"
+                      turbo_confirm: "Are you sure you want to reschedule your booking to #{trip.departure_at.strftime('%d %b %Y, %I:%M %p')}?"
                     }
                   ) %>
 
@@ -226,9 +219,7 @@
 
       <div class="empty-state">
 
-        <h3>
-          No other trips available
-        </h3>
+        <h3>No other trips available</h3>
 
         <p>
           There are currently no future trips available

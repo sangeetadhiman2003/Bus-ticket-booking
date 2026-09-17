@@ -16,7 +16,7 @@ module Bookings
 
         old_hold = lock_old_hold!(booking)
 
-        old_trip_seats = lock_old_trip_seats!(old_hold)
+        old_trip_seats = lock_old_trip_seats(old_hold)
 
         validate_old_seats!(old_trip_seats)
 
@@ -32,7 +32,7 @@ module Bookings
           seat_ids
         )
 
-        make_expired_holds_available!(
+        release_expired_holds!(
           new_trip_seats
         )
 
@@ -61,13 +61,13 @@ module Bookings
           booking,
           new_trip,
           new_hold,
-          seat_ids.size
+          seat_ids.length
         )
 
         invalidate_trip_cache(booking.trip)
         invalidate_trip_cache(new_trip)
 
-        booking
+        booking.reload
       end
     end
 
@@ -75,14 +75,9 @@ module Bookings
 
     attr_reader :user, :booking, :new_trip
 
-    # --------------------------------------------------
-    # BOOKING
-    # --------------------------------------------------
-
     def lock_booking
       Booking
         .lock
-        .includes(:trip)
         .find(booking.id)
     end
 
@@ -97,10 +92,6 @@ module Bookings
               "Only confirmed bookings can be rescheduled."
       end
     end
-
-    # --------------------------------------------------
-    # NEW TRIP
-    # --------------------------------------------------
 
     def lock_new_trip
       Trip
@@ -128,14 +119,12 @@ module Bookings
 
       unless old_trip.from_city == new_trip.from_city &&
              old_trip.to_city == new_trip.to_city
+
         raise InvalidBookingError,
               "You can only reschedule on the same route."
       end
     end
 
-    # --------------------------------------------------
-    # OLD HOLD
-    # --------------------------------------------------
 
     def lock_old_hold!(booking)
       hold = Hold
@@ -150,11 +139,8 @@ module Bookings
       hold
     end
 
-    # --------------------------------------------------
-    # OLD SEATS
-    # --------------------------------------------------
 
-    def lock_old_trip_seats!(old_hold)
+    def lock_old_trip_seats(old_hold)
       TripSeat
         .where(hold_id: old_hold.id)
         .lock
@@ -167,16 +153,20 @@ module Bookings
         raise InvalidBookingError,
               "Your booking does not have any confirmed seats."
       end
+
+      invalid_seats = trip_seats.reject(&:booked?)
+
+      unless invalid_seats.empty?
+        raise InvalidBookingError,
+              "Some seats in your booking are no longer booked."
+      end
     end
 
-    # --------------------------------------------------
-    # NEW SEATS
-    # --------------------------------------------------
 
-    def lock_new_trip_seats(new_trip, seat_ids)
+    def lock_new_trip_seats(trip, seat_ids)
       TripSeat
         .where(
-          trip_id: new_trip.id,
+          trip_id: trip.id,
           seat_id: seat_ids
         )
         .lock
@@ -191,21 +181,22 @@ module Bookings
 
       return if missing_seat_ids.empty?
 
+      missing_numbers = Seat
+        .where(id: missing_seat_ids)
+        .pluck(:seat_number)
+        .join(", ")
+
       raise InvalidBookingError,
-            "One or more of your current seats do not exist on the selected trip."
+            "The selected trip does not contain seat(s): #{missing_numbers}."
     end
 
-    # --------------------------------------------------
-    # EXPIRED HOLDS
-    # --------------------------------------------------
+    def release_expired_holds!(trip_seats)
+      now = Time.current
 
-    def make_expired_holds_available!(trip_seats)
       trip_seats.each do |trip_seat|
         next unless trip_seat.held?
-
         next unless trip_seat.held_until.present?
-
-        next if trip_seat.held_until > Time.current
+        next if trip_seat.held_until > now
 
         trip_seat.update!(
           status: :available,
@@ -215,14 +206,9 @@ module Bookings
       end
     end
 
-    # --------------------------------------------------
-    # AVAILABILITY
-    # --------------------------------------------------
 
     def validate_new_seats_available!(trip_seats)
-      unavailable_seats = trip_seats.reject do |trip_seat|
-        trip_seat.available?
-      end
+      unavailable_seats = trip_seats.reject(&:available?)
 
       return if unavailable_seats.empty?
 
@@ -234,9 +220,6 @@ module Bookings
             "Seat(s) #{seat_numbers} are already booked or temporarily held."
     end
 
-    # --------------------------------------------------
-    # CREATE NEW HOLD
-    # --------------------------------------------------
 
     def create_new_hold!(trip)
       Hold.create!(
@@ -247,9 +230,6 @@ module Bookings
       )
     end
 
-    # --------------------------------------------------
-    # BOOK NEW SEATS
-    # --------------------------------------------------
 
     def book_new_seats!(trip_seats, hold)
       trip_seats.each do |trip_seat|
@@ -261,10 +241,6 @@ module Bookings
       end
     end
 
-    # --------------------------------------------------
-    # RELEASE OLD SEATS
-    # --------------------------------------------------
-
     def release_old_seats!(trip_seats)
       trip_seats.each do |trip_seat|
         trip_seat.update!(
@@ -275,19 +251,11 @@ module Bookings
       end
     end
 
-    # --------------------------------------------------
-    # CANCEL OLD HOLD
-    # --------------------------------------------------
-
     def cancel_old_hold!(old_hold)
       old_hold.update!(
         status: :cancelled
       )
     end
-
-    # --------------------------------------------------
-    # UPDATE BOOKING
-    # --------------------------------------------------
 
     def update_booking!(
       booking,
@@ -302,9 +270,6 @@ module Bookings
       )
     end
 
-    # --------------------------------------------------
-    # CACHE
-    # --------------------------------------------------
 
     def invalidate_trip_cache(_trip)
       Rails.cache.delete_matched("trip-search*")
