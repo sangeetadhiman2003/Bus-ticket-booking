@@ -16,8 +16,7 @@ The application includes:
 ## Clone and Run
 
 git clone https://github.com/sangeetadhiman2003/Bus-ticket-booking
-cd ticket_booking
-
+cd Bus-ticket-booking
 bundle install
 
 rails db:create
