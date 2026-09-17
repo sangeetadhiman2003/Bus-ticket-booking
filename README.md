@@ -1,24 +1,42 @@
-# README
+## Completed
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+The application includes:
 
-Things you may want to cover:
+- User authentication
+- Trip search and filtering
+- Seat selection with 5-minute temporary holds
+- Concurrency-safe seat booking
+- Idempotent booking confirmation
+- Booking rescheduling
+- Booking cancellation and refund
+- Background jobs for hold expiry
+- Rails caching
+- RSpec testing
 
-* Ruby version
+## Clone and Run
 
-* System dependencies
+git clone [<repository-url>](https://github.com/sangeetadhiman2003/Bus-ticket-booking)
+cd ticket_booking
 
-* Configuration
+bundle install
 
-* Database creation
+rails db:create
+rails db:migrate
+rails db:seed
 
-* Database initialization
+rails server
 
-* How to run the test suite
 
-* Services (job queues, cache servers, search engines, etc.)
+Open:
 
-* Deployment instructions
+http://localhost:3000
 
-* ...
+Run tests:
+bundle exec rspec
+
+
+### Requirements
+
+* Ruby 3.2.2
+* Rails 7.1.6
+* PostgreSQL 12+
