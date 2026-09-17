@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  operator: one
+  name: MyString
+  bus_type: 1
+  amenities: 
+
+two:
+  operator: two
+  name: MyString
+  bus_type: 1
+  amenities: 

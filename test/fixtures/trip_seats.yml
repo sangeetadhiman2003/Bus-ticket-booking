@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trip: one
+  seat: one
+  status: 1
+  hold_id: 
+  held_until: 2026-09-14 23:03:20
+
+two:
+  trip: two
+  seat: two
+  status: 1
+  hold_id: 
+  held_until: 2026-09-14 23:03:20
